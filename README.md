@@ -12,7 +12,7 @@ To start the Metro dev server, run the following command from the root of your R
 
 ```sh
 # Using npm
-npm start
+#npm start
 
 # OR using Yarn
 yarn start
@@ -26,7 +26,7 @@ With Metro running, open a new terminal window/pane from the root of your React 
 
 ```sh
 # Using npm
-npm run android
+#npm run android
 
 # OR using Yarn
 yarn android
