@@ -1,3 +1,4 @@
+import { useNavigation } from "@react-navigation/native";
 import React from "react";
 import {
   View,
@@ -9,7 +10,8 @@ import {
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
-const Header = ({ navigation }) => {
+const Header = () => {
+  const navigation = useNavigation();
   return (
     <View style={styles.container}>
       <View style={styles.leftContainer}>
@@ -24,7 +26,10 @@ const Header = ({ navigation }) => {
         <Text style={styles.title}>Hindu Calendar</Text>
       </View>
       <View style={styles.rightContainer}>
-        <TouchableOpacity style={styles.iconButton}>
+        <TouchableOpacity
+          style={{ marginRight: 15 }}
+          onPress={() => navigation.navigate("CalendarScreen")} // Navigate to calendar
+        >
           <Icon name="calendar-month-outline" size={26} color="#333" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconButton}>
