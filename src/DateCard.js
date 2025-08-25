@@ -1,56 +1,65 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import LinearGradient from 'react-native-linear-gradient';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Switch,
+  Appearance,
+} from "react-native";
+import LinearGradient from "react-native-linear-gradient";
+import Ionicons from "react-native-vector-icons/Ionicons";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
-// 1. અલગ ફાઈલમાંથી પંચાંગ ડેટાને ઈમ્પોર્ટ કરો
-// ખાતરી કરો કે 'panchangData.js' ફાઈલ આ ફાઈલની સાથે જ પ્રોજેક્ટમાં હાજર છે.
-import { panchangData } from './utils/panchangData';
+// Panchang Data import
+import { panchangData } from "./utils/panchangData";
 
-
-/**
- * આ ફંક્શન static ડેટામાંથી પંચાંગની વિગતો મેળવે છે.
- * @param {Date} date - જે તારીખ માટે પંચાંગ જોઈએ છે તે.
- * @returns {string} - ફોર્મેટ કરેલી પંચાંગ સ્ટ્રિંગ.
- */
-const getPanchang = (date) => {
-  // તારીખને "YYYY-MM-DD" ફોર્મેટમાં ફેરવો
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const key = `${year}-${month}-${day}`;
-
-  // ડેટા ઓબ્જેક્ટમાંથી માહિતી શોધો
-  const data = panchangData[key];
-
-  if (data) {
-    // જો ડેટા મળે, તો તેને ફોર્મેટ કરીને બતાવો
-    return `${data.maas} ${data.paksha} ${data.tithi}`;
-  } else {
-    // જો તે તારીખનો ડેટા ન મળે, તો ભૂલ બતાવો
-    return "ડેટા ઉપલબ્ધ નથી";
-  }
+// Themes
+// Themes
+const themes = {
+  dark: {
+    background: ["#1c1e24", "#101216"],
+    text: "#fff",
+    secondaryText: "rgba(255,255,255,0.6)",
+    border: "rgba(255,255,255,0.08)",
+    accent: "#C62828", // RED
+  },
+  light: {
+    background: ["#f8f8f8", "#eaeaea"],
+    text: "#000",
+    secondaryText: "rgba(0,0,0,0.6)",
+    border: "rgba(0,0,0,0.08)",
+    accent: "#C62828", // RED
+  },
 };
 
 
-/**
- * આજની તારીખ અને પંચાંગ દર્શાવતો એક સુંદર કાર્ડ કમ્પોનન્ટ.
- */
+const getPanchang = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const key = `${year}-${month}-${day}`;
+  const data = panchangData[key];
+  return data ? `${data.maas} ${data.paksha} ${data.tithi}` : "ડેટા ઉપલબ્ધ નથી";
+};
+
 const DateCard = ({ date = new Date(), onPress }) => {
-  const [panchang, setPanchang] = useState('...');
+  const [panchang, setPanchang] = useState("...");
+  const systemTheme = Appearance.getColorScheme(); // auto detect
+  const [themeMode, setThemeMode] = useState(systemTheme || "light"); // manual toggle
 
   useEffect(() => {
-    // જ્યારે પણ તારીખ બદલાય ત્યારે પંચાંગ અપડેટ કરો.
     const details = getPanchang(date);
     setPanchang(details);
   }, [date]);
 
-  // તારીખ અને વાર ગુજરાતીમાં મેળવો
-  const day = new Intl.DateTimeFormat('gu-IN', { day: 'numeric' }).format(date);
-  const month = new Intl.DateTimeFormat('gu-IN', { month: 'long' }).format(date);
-  const year = new Intl.DateTimeFormat('gu-IN', { year: 'numeric' }).format(date);
-  const weekday = new Intl.DateTimeFormat('gu-IN', { weekday: 'long' }).format(date);
+  const theme = themes[themeMode];
 
-  // સમય પ્રમાણે શુભેચ્છા
+  const day = new Intl.DateTimeFormat("gu-IN", { day: "numeric" }).format(date);
+  const month = new Intl.DateTimeFormat("gu-IN", { month: "long" }).format(date);
+  const year = new Intl.DateTimeFormat("gu-IN", { year: "numeric" }).format(date);
+  const weekday = new Intl.DateTimeFormat("gu-IN", { weekday: "long" }).format(date);
+
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return "સુપ્રભાત";
@@ -59,78 +68,116 @@ const DateCard = ({ date = new Date(), onPress }) => {
   };
 
   return (
-    <TouchableOpacity onPress={onPress} activeOpacity={0.8}>
-      <LinearGradient
-        colors={['#FF8A65', '#D32F2F']}
-        style={styles.card}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-      >
-        <View style={styles.topRow}>
-          <Text style={styles.dateText}>{day}</Text>
-          <View style={styles.rightText}>
-            <Text style={styles.monthYearText}>{`${month}, ${year}`}</Text>
-            <Text style={styles.dayText}>{weekday}</Text>
-          </View>
-        </View>
+    <View>
+      {/* Theme Switch */}
+      <View style={{ flexDirection: "row", justifyContent: "flex-end", marginBottom: 10 }}>
+        <Text style={{ color: theme.text, marginRight: 10 }}>Dark Mode</Text>
+        <Switch
+          value={themeMode === "dark"}
+          onValueChange={() => setThemeMode(themeMode === "dark" ? "light" : "dark")}
+        />
+      </View>
 
-        <View style={styles.bottomRow}>
-          <Text style={styles.infoText}>{panchang}</Text>
-          <Text style={styles.infoText}>{getGreeting()}</Text>
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
+      <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
+        <LinearGradient
+          colors={theme.background}
+          style={[styles.card, { borderColor: theme.border }]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+        >
+          <View style={styles.headerRow}>
+            <Ionicons name="calendar-outline" size={20} color={theme.accent} />
+            <Text style={[styles.headerText, { color: theme.text }]}>આજનું પંચાંગ</Text>
+          </View>
+
+          <View style={styles.dateRow}>
+            <Text style={[styles.dateNumber, { color: theme.text }]}>{day}</Text>
+            <View style={styles.rightText}>
+              <Text style={[styles.monthYearText, { color: theme.text }]}>
+                {`${month}, ${year}`}
+              </Text>
+              <Text style={[styles.dayText, { color: theme.secondaryText }]}>{weekday}</Text>
+            </View>
+          </View>
+
+          <View style={[styles.divider, { backgroundColor: theme.border }]} />
+
+          <View style={styles.bottomRow}>
+            <View style={styles.infoBlock}>
+              <MaterialCommunityIcons name="star-four-points" size={18} color={theme.accent} />
+              <Text style={[styles.infoText, { color: theme.text }]}>{panchang}</Text>
+            </View>
+            <Text style={[styles.greeting, { color: theme.accent }]}>{getGreeting()}</Text>
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
+    </View>
   );
 };
 
-
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
+    borderRadius: 18,
     padding: 20,
-    elevation: 5,
+    marginVertical: 10,
+    borderWidth: 1,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
   },
-  topRow: {
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 14,
+    gap: 8,
+  },
+  headerText: {
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  dateRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
-  dateText: {
-    color: "#fff",
-    fontSize: 56,
-    fontWeight: "700",
-    marginTop: -8,
+  dateNumber: {
+    fontSize: 52,
+    fontWeight: "900",
+    letterSpacing: -2,
   },
   rightText: {
     alignItems: "flex-end",
   },
   monthYearText: {
-    color: "#fff",
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "600",
   },
   dayText: {
-    color: "rgba(255, 255, 255, 0.8)",
     fontSize: 16,
-    marginTop: 2,
+    marginTop: 4,
+  },
+  divider: {
+    height: 1,
+    marginVertical: 14,
   },
   bottomRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 16,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(255, 255, 255, 0.3)",
+  },
+  infoBlock: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   infoText: {
-    color: "#fff",
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
+  },
+  greeting: {
+    fontSize: 16,
+    fontWeight: "700",
   },
 });
 
