@@ -7,31 +7,39 @@ import {
   StyleSheet,
   Platform,
   StatusBar,
+  Alert,
 } from "react-native";
 import Icon from "react-native-vector-icons/MaterialCommunityIcons";
 
 const Header = () => {
   const navigation = useNavigation();
+
   return (
     <View style={styles.container}>
       <View style={styles.leftContainer}>
+        {/* Menu button now shows alert instead of openDrawer */}
         <TouchableOpacity
           style={styles.iconButton}
-          onPress={() => navigation.openDrawer()}>
+          onPress={() => Alert.alert("Menu button clicked")}
+        >
           <Icon name="menu" size={28} color="#333" />
         </TouchableOpacity>
+
         <TouchableOpacity style={styles.iconButton}>
           <Icon name="map-marker-outline" size={28} color="#E53935" />
         </TouchableOpacity>
+
         <Text style={styles.title}>Hindu Calendar</Text>
       </View>
+
       <View style={styles.rightContainer}>
         <TouchableOpacity
           style={{ marginRight: 15 }}
-          onPress={() => navigation.navigate("CalendarScreen")} // Navigate to calendar
+          onPress={() => navigation.navigate("CalendarScreen")}
         >
           <Icon name="calendar-month-outline" size={26} color="#333" />
         </TouchableOpacity>
+
         <TouchableOpacity style={styles.iconButton}>
           <Icon name="share-variant" size={26} color="#333" />
         </TouchableOpacity>
@@ -47,11 +55,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 10,
     paddingBottom: 10,
-    // Add padding for the status bar on Android
-    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight + 10 : 10,
     backgroundColor: "#fff",
-    elevation: 4, // Shadow for Android
-    shadowColor: "#000", // Shadow for iOS
+    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight :  10,
+    elevation: 4,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 2,
@@ -67,11 +74,11 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 20,
     fontWeight: "bold",
-    color: "#E53935", // Using the same red from DateCard for consistency
+    color: "#E53935",
     marginLeft: 5,
   },
   iconButton: {
-    padding: 8, // Increases touchable area and provides spacing
+    padding: 8,
   },
 });
 
