@@ -25,7 +25,7 @@ const themes = {
     accent: "#C62828", // RED
   },
   light: {
-    background: ["#f8f8f8", "#eaeaea"],
+    background: ["#ffffffff", "#ffffffff"],
     text: "#000",
     secondaryText: "rgba(0,0,0,0.6)",
     border: "rgba(0,0,0,0.08)",
@@ -69,14 +69,14 @@ const DateCard = ({ date = new Date(), onPress }) => {
 
   return (
     <View>
-      {/* Theme Switch */}
+      {/* Theme Switch
       <View style={{ flexDirection: "row", justifyContent: "flex-end", marginBottom: 10 }}>
         <Text style={{ color: theme.text, marginRight: 10 }}>Dark Mode</Text>
         <Switch
           value={themeMode === "dark"}
           onValueChange={() => setThemeMode(themeMode === "dark" ? "light" : "dark")}
         />
-      </View>
+      </View> */}
 
       <TouchableOpacity onPress={onPress} activeOpacity={0.9}>
         <LinearGradient

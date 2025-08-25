@@ -14,8 +14,6 @@ const InfoItem = ({ icon, title, value, color = '#c0392b' }) => (
 );
 
 const TarikhiyuHome = () => {
-  // આ બધી માહિતી તમે API અથવા ડેટાબેઝમાંથી લાવી શકો છો.
-  // હાલમાં આપણે ઉદાહરણ માટે static ડેટા વાપરી રહ્યા છીએ.
   const dailyData = {
     vichhudo: 'આજે વિંછુડો નથી',
     panchak: 'આજે પંચક નથી',
@@ -57,7 +55,7 @@ const TarikhiyuHome = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f6f8', // થોડો ઓફ-વ્હાઇટ બેકગ્રાઉન્ડ
+    backgroundColor: '#ffffffff', // થોડો ઓફ-વ્હાઇટ બેકગ્રાઉન્ડ
     padding: 15,
   },
   infoGrid: {
