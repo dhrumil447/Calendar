@@ -20,8 +20,8 @@ const CalendarHome = ({ navigation }) => {
         style={styles.scrollView}
       >
         <DateCard />
-        <DetailsCard />
-        <InfoRow />
+        {/* <DetailsCard /> */}
+        {/* <InfoRow /> */}
       </ScrollView>
     </View>
   );
