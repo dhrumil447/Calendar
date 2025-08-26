@@ -24,40 +24,50 @@ export default function SunTimesCard({ date = new Date() }) {
   const longitude = 72.5714;
 
   useEffect(() => {
-    // Get sun times
-    const sunTimes = SunCalc.getTimes(date, latitude, longitude);
-    
-    // Get moon times
-    const moonTimes = SunCalc.getMoonTimes(date, latitude, longitude);
+    const calculateTimes = () => {
+      try {
+        // Get sun times
+        const sunTimes = SunCalc.getTimes(date, latitude, longitude);
+        
+        // Get moon times
+        const moonTimes = SunCalc.getMoonTimes(date, latitude, longitude);
 
-    const formattedTimes = [
-      {
-        icon: "weather-sunset-up",
-        label: "સૂર્યોદય",
-        time: formatTime(sunTimes.sunrise),
-        color: "#f39c12",
-      },
-      {
-        icon: "weather-sunset-down",
-        label: "સૂર્યાસ્ત",
-        time: formatTime(sunTimes.sunset),
-        color: "#e67e22",
-      },
-      {
-        icon: "moon-waxing-crescent",
-        label: "ચંદ્રોદય",
-        time: formatTime(moonTimes.rise),
-        color: "#3498db",
-      },
-      {
-        icon: "moon-waning-crescent",
-        label: "ચંદ્રાસ્ત",
-        time: formatTime(moonTimes.set),
-        color: "#8e44ad",
-      },
-    ];
+        return [
+          {
+            icon: "weather-sunset-up",
+            label: "સૂર્યોદય",
+            time: formatTime(sunTimes.sunrise),
+            color: "#f39c12",
+          },
+          {
+            icon: "weather-sunset-down",
+            label: "સૂર્યાસ્ત",
+            time: formatTime(sunTimes.sunset),
+            color: "#e67e22",
+          },
+          {
+            icon: "moon-waxing-crescent",
+            label: "ચંદ્રોદય",
+            time: formatTime(moonTimes.rise),
+            color: "#3498db",
+          },
+          {
+            icon: "moon-waning-crescent",
+            label: "ચંદ્રાસ્ત",
+            time: formatTime(moonTimes.set),
+            color: "#8e44ad",
+          },
+        ];
+      } catch (error) {
+        console.error('Error calculating times:', error);
+        return null;
+      }
+    };
 
-    setTimes(formattedTimes);
+    const formattedTimes = calculateTimes();
+    if (formattedTimes) {
+      setTimes(formattedTimes);
+    }
   }, [date]); // Recalculate if the date prop changes
 
   // Show a loading indicator while calculating
