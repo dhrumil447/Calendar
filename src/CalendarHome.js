@@ -1,27 +1,18 @@
 import React from 'react';
 import { ScrollView, View, StatusBar } from 'react-native';
-import { globalStyles } from './styles/globalStyles';
 import Header from './Header';
 import DateCard from './DateCard';
-import DetailsCard from './DetailsCard';
 import InfoRow from './InfoRow';
 
 const CalendarHome = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <StatusBar 
-        barStyle="dark-content" 
-        backgroundColor="#FFFFFF" 
-        translucent
-      />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" translucent />
       <Header navigation={navigation} />
-      <ScrollView 
-        contentContainerStyle={styles.scrollViewContent}
-        style={styles.scrollView}
-      >
+      <ScrollView contentContainerStyle={styles.scrollViewContent} style={styles.scrollView}>
         <DateCard />
         {/* <DetailsCard /> */}
-        {/* <InfoRow /> */}
+        <InfoRow />
       </ScrollView>
     </View>
   );

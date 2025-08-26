@@ -83,27 +83,21 @@ const DateCard = ({ date = new Date() }) => {
     return 'શુભ સાંજ';
   };
 
-  const toggleExpand = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    setIsExpanded(!isExpanded);
-  };
-
   return (
     <LinearGradient colors={theme.background} style={[styles.card, { borderColor: theme.border }]}>
       <View style={styles.topRow}>
         <View>
           <Text style={[styles.greetingText, { color: theme.text }]}>{getGreeting()}</Text>
-          <Text style={[styles.subtitleText, { color: theme.secondaryText }]}>આજનું પંચાંગ</Text>
         </View>
       </View>
 
       <View style={styles.mainDateContainer}>
         <Text style={[styles.dayText, { color: theme.accent }]}>{day}</Text>
         <View style={styles.dateInfoContainer}>
-          <Text style={[styles.weekdayText, { color: theme.text }]}>{weekday}</Text>
           <Text style={[styles.monthYearText, { color: theme.secondaryText }]}>
             {month}, {year}
           </Text>
+          <Text style={[styles.weekdayText, { color: theme.text }]}>{weekday}</Text>
         </View>
       </View>
 
@@ -140,7 +134,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   greetingText: {
-    fontSize: 26,
+    fontSize: 20,
     fontWeight: 'bold',
   },
   subtitleText: {
@@ -154,20 +148,20 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   dayText: {
-    fontSize: 72,
+    fontSize: 50,
     fontWeight: '900',
-    lineHeight: 72,
+    lineHeight: 60,
   },
   dateInfoContainer: {
     marginLeft: 16,
   },
   weekdayText: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: '700',
     marginBottom: 4,
   },
   monthYearText: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '500',
   },
   panchangContainer: {
