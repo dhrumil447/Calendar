@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
+// ઉમેરો: સ્વાઇપ કરવા માટે Gesture Recognizer લાઇબ્રેરી import કરો
+import GestureRecognizer from 'react-native-swipe-gestures';
+
 import { festivalData } from './data/festivals';
-// સુધારો: calculatePanchang ની જગ્યાએ getPanchang ફંક્શન import કરો
 import { getPanchang } from './utils/panchang';
 
 const gujaratiDays = ['રવિ', 'સોમ', 'મંગળ', 'બુધ', 'ગુરુ', 'શુક્ર', 'શનિ'];
@@ -54,23 +56,16 @@ const CalendarScreen = () => {
 
   const today = new Date();
 
-  // સુધારો: useMemo ની અંદર getPanchang નો ઉપયોગ કરવા માટે લોજિક અપડેટ કર્યું છે.
+  // useMemo લોજિક માં કોઈ ફેરફાર નથી
   const { calendarGrid, headerInfo } = useMemo(() => {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-
     const firstDayOfMonth = new Date(year, month, 1);
     const lastDayOfMonth = new Date(year, month + 1, 0);
-
-    // મહિનાના પહેલા અને છેલ્લા દિવસની તિથિ મેળવો
     const startPanchang = getPanchang(firstDayOfMonth);
     const endPanchang = getPanchang(lastDayOfMonth);
-
-    // તેમાંથી ગુજરાતી મહિનાનું નામ અલગ કરો
     const startGujaratiMonth = startPanchang.split(' ')[0];
     const endGujaratiMonth = endPanchang.split(' ')[0];
-
-    // હેડર માટે માહિતી તૈયાર કરો
     const headerInfo = {
       title: `${monthNamesGuj[month]} ${year}`,
       subtitle: `${
@@ -79,13 +74,11 @@ const CalendarScreen = () => {
           : `${startGujaratiMonth} - ${endGujaratiMonth}`
       } (વિ.સં. ${year + 56}/${year + 57})`,
     };
-
     const grid = [];
     const eventsList = [];
     let day = 1;
     const daysInMonth = lastDayOfMonth.getDate();
     const firstDayIndex = firstDayOfMonth.getDay();
-
     for (let i = 0; i < 6; i++) {
       const week = [];
       for (let j = 0; j < 7; j++) {
@@ -97,32 +90,25 @@ const CalendarScreen = () => {
             2,
             '0'
           )}`;
-
           let events = [];
           if (festivalData[dateString]) {
             events.push(festivalData[dateString]);
           }
-
-          // સુધારો: getPanchang ફંક્શનમાંથી તિથિની સંપૂર્ણ સ્ટ્રિંગ મેળવો
           const panchangString = getPanchang(dateObj);
-
-          // ખાસ તિથિઓ માટે આઇકોન ઉમેરવાનું લોજિક એ જ રહેશે
           if (panchangString.includes('એકાદશી'))
             events.push({ name: 'એકાદશી', type: 'Tithi', icon: 'flower-tulip' });
           if (panchangString.includes('પૂનમ'))
             events.push({ name: 'પૂનમ', type: 'Tithi', icon: 'circle-slice-8' });
           if (panchangString.includes('અમાસ'))
             events.push({ name: 'અમાસ', type: 'Tithi', icon: 'circle-outline' });
-
           if (festivalData[dateString])
             eventsList.push({ day, dateObj, event: festivalData[dateString] });
-
           week.push({
             day,
             dateObj,
             isSunday: j === 0,
             event: festivalData[dateString] || null,
-            panchangString: panchangString, // તિથિની સ્ટ્રિંગ સ્ટોર કરો
+            panchangString: panchangString,
             events: events,
           });
           day++;
@@ -140,7 +126,12 @@ const CalendarScreen = () => {
   const handleNextMonth = () =>
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
 
-  // JSX/Display ભાગમાં કોઈ મોટા ફેરફાર નથી, તે panchangString નો ઉપયોગ કરશે.
+  // ઉમેરો: Gesture Recognizer માટે configuration object
+  const gestureConfig = {
+    velocityThreshold: 0.3,
+    directionalOffsetThreshold: 80,
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -156,73 +147,80 @@ const CalendarScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.weekRow}>
-        {gujaratiDays.map(day => (
-          <Text key={day} style={styles.weekDay}>
-            {day}
-          </Text>
-        ))}
-      </View>
-
-      <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
-        {calendarGrid.map((week, rowIndex) => (
-          <View key={rowIndex} style={styles.calendarRow}>
-            {week.map((dayData, colIndex) => {
-              const isToday =
-                dayData &&
-                dayData.day === today.getDate() &&
-                dayData.dateObj.getMonth() === today.getMonth() &&
-                dayData.dateObj.getFullYear() === today.getFullYear();
-              const isHoliday =
-                dayData && (dayData.isSunday || (dayData.event && dayData.event.bankHoliday));
-
-              return (
-                <TouchableOpacity
-                  key={colIndex}
-                  style={[styles.dateCell, isHoliday && styles.holidayCell]}
-                  onPress={() => dayData && setSelectedDate(dayData)}
-                  disabled={!dayData}
-                >
-                  {dayData && (
-                    <>
-                      <View style={[isToday && styles.todayCircle]}>
-                        <Text style={[styles.dateText, isHoliday && { color: '#D32F2F' }]}>
-                          {dayData.day}
-                        </Text>
-                      </View>
-                      {/* સુધારો: અહીં panchangString સીધી બતાવવામાં આવશે */}
-                      <Text style={styles.tithiText} numberOfLines={1}>
-                        {dayData.panchangString}
-                      </Text>
-                      {dayData.event && (
-                        <Text style={styles.cellEventText} numberOfLines={1}>
-                          {dayData.event.name}
-                        </Text>
-                      )}
-                    </>
-                  )}
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        ))}
-
-        <CalendarKey />
-
-        <View style={styles.eventListContainer}>
-          <Text style={styles.eventListTitle}>આ મહિના ના તહેવાર</Text>
-          {monthEvents.length > 0 ? (
-            monthEvents.map(({ day, dateObj, event }, index) => (
-              <Text key={index} style={styles.eventListItem}>
-                {String(day).padStart(2, '0')} - {monthNamesGuj[dateObj.getMonth()]},{' '}
-                {gujaratiDays[dateObj.getDay()]} | {event.name}
-              </Text>
-            ))
-          ) : (
-            <Text style={styles.eventListItem}>આ મહિને કોઈ મુખ્ય તહેવાર નથી.</Text>
-          )}
+      {/* ફેરફાર: GestureRecognizer વડે કેલેન્ડર અને ઇવેન્ટ લિસ્ટને રેપ કરો */}
+      <GestureRecognizer
+        onSwipeLeft={handleNextMonth} // જમણે થી ડાબે સ્વાઇપ (આગળનો મહિનો)
+        onSwipeRight={handlePrevMonth} // ડાબે થી જમણે સ્વાઇપ (પાછળનો મહિનો)
+        config={gestureConfig}
+        style={{ flex: 1 }} // આ જરૂરી છે જેથી તે જગ્યા રોકે
+      >
+        <View style={styles.weekRow}>
+          {gujaratiDays.map(day => (
+            <Text key={day} style={styles.weekDay}>
+              {day}
+            </Text>
+          ))}
         </View>
-      </ScrollView>
+
+        <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+          {calendarGrid.map((week, rowIndex) => (
+            <View key={rowIndex} style={styles.calendarRow}>
+              {week.map((dayData, colIndex) => {
+                const isToday =
+                  dayData &&
+                  dayData.day === today.getDate() &&
+                  dayData.dateObj.getMonth() === today.getMonth() &&
+                  dayData.dateObj.getFullYear() === today.getFullYear();
+                const isHoliday =
+                  dayData && (dayData.isSunday || (dayData.event && dayData.event.bankHoliday));
+
+                return (
+                  <TouchableOpacity
+                    key={colIndex}
+                    style={[styles.dateCell, isHoliday && styles.holidayCell]}
+                    onPress={() => dayData && setSelectedDate(dayData)}
+                    disabled={!dayData}
+                  >
+                    {dayData && (
+                      <>
+                        <View style={[isToday && styles.todayCircle]}>
+                          <Text style={[styles.dateText, isHoliday && { color: '#D32F2F' }]}>
+                            {dayData.day}
+                          </Text>
+                        </View>
+                        <Text style={styles.tithiText} numberOfLines={1}>
+                          {dayData.panchangString}
+                        </Text>
+                        {dayData.event && (
+                          <Text style={styles.cellEventText} numberOfLines={1}>
+                            {dayData.event.name}
+                          </Text>
+                        )}
+                      </>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ))}
+
+          <CalendarKey />
+
+          <View style={styles.eventListContainer}>
+            <Text style={styles.eventListTitle}>આ મહિના ના તહેવાર</Text>
+            {monthEvents.length > 0 ? (
+              monthEvents.map(({ day, dateObj, event }, index) => (
+                <Text key={index} style={styles.eventListItem}>
+                  {String(day).padStart(2, '0')} - {monthNamesGuj[dateObj.getMonth()]},{' '}
+                  {gujaratiDays[dateObj.getDay()]} | {event.name}
+                </Text>
+              ))
+            ) : (
+              <Text style={styles.eventListItem}>આ મહિને કોઈ મુખ્ય તહેવાર નથી.</Text>
+            )}
+          </View>
+        </ScrollView>
+      </GestureRecognizer>
 
       {/* Modal માં કોઈ ફેરફાર નથી */}
       {selectedDate && (
@@ -287,11 +285,10 @@ const styles = StyleSheet.create({
   weekRow: {
     flexDirection: 'row',
     backgroundColor: '#d32f2f',
-    justifyContent: 'space-between',
-    width: 364, // 7 cells × 52 pixels each
+    // સુધારો: પહોળાઈ (width) કાઢી નાખો જેથી તે ફ્લેક્સિબલ રહે
   },
   weekDay: {
-    width: 52, // Same width as date cells
+    flex: 1, // દરેક દિવસને સરખી જગ્યા આપો
     textAlign: 'center',
     padding: 10,
     color: 'white',
@@ -299,18 +296,18 @@ const styles = StyleSheet.create({
   },
   calendarRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: 364, // 7 cells × 52 pixels each
+    // સુધારો: પહોળાઈ (width) કાઢી નાખો
   },
   dateCell: {
-    width: 52, // Fixed width for all cells
-    height: 70, // Same as width to make cells square
+    flex: 1, // દરેક સેલને સરખી જગ્યા આપો
+    aspectRatio: 0, // ઊંચાઈને પહોળાઈ જેટલી જ રાખો (ચોરસ બનાવવા માટે)
+    height: undefined, // aspectRatio સાથે કામ કરવા માટે height ને undefined કરો
     borderBottomWidth: 1,
     borderRightWidth: 1,
     borderColor: '#f0f0f0',
     padding: 4,
     alignItems: 'center',
-    justifyContent: 'center', // Center content vertically
+    justifyContent: 'center',
   },
   holidayCell: { backgroundColor: '#FFF5F5' },
   todayCircle: {
