@@ -284,21 +284,37 @@ const styles = StyleSheet.create({
   },
   headerTitle: { fontSize: 20, fontWeight: 'bold', textAlign: 'center' },
   headerSubtitle: { fontSize: 13, color: '#666', textAlign: 'center' },
-  weekRow: { flexDirection: 'row', backgroundColor: '#d32f2f' },
-  weekDay: { flex: 1, textAlign: 'center', padding: 10, color: 'white', fontWeight: 'bold' },
-  calendarRow: { flexDirection: 'row' },
+  weekRow: {
+    flexDirection: 'row',
+    backgroundColor: '#d32f2f',
+    justifyContent: 'space-between',
+    width: 364, // 7 cells × 52 pixels each
+  },
+  weekDay: {
+    width: 52, // Same width as date cells
+    textAlign: 'center',
+    padding: 10,
+    color: 'white',
+    fontWeight: 'bold',
+  },
+  calendarRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: 364, // 7 cells × 52 pixels each
+  },
   dateCell: {
-    flex: 1,
+    width: 52, // Fixed width for all cells
+    height: 70, // Same as width to make cells square
     borderBottomWidth: 1,
     borderRightWidth: 1,
     borderColor: '#f0f0f0',
-    height: 95,
     padding: 4,
     alignItems: 'center',
+    justifyContent: 'center', // Center content vertically
   },
   holidayCell: { backgroundColor: '#FFF5F5' },
   todayCircle: {
-    backgroundColor: '#E8F5E9',
+    backgroundColor: '#8fc999ff',
     width: 30,
     height: 30,
     borderRadius: 15,
@@ -306,9 +322,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   dateText: { fontSize: 18, fontWeight: 'bold', color: '#333' },
-  tithiText: { fontSize: 11, color: '#555', marginTop: 4, textAlign: 'center' },
+  tithiText: { fontSize: 8, color: '#555', marginTop: 4, textAlign: 'center' },
   cellEventText: {
-    fontSize: 10,
+    fontSize: 8,
     color: '#D32F2F',
     fontWeight: 'bold',
     marginTop: 4,

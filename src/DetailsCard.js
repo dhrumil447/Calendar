@@ -1,135 +1,225 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, Animated } from 'react-native';
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import SunCalc from 'suncalc';
+import LinearGradient from 'react-native-linear-gradient';
 
-// Helper function to format date objects into Gujarati time string
-const formatTime = (dateObj) => {
-  if (!dateObj || isNaN(dateObj.getTime())) {
-    return "આજે નથી"; // Handles cases where moonrise/moonset doesn't occur
-  }
+// Helper functions (કોઈ ફેરફાર નથી)
+const formatTime = dateObj => {
+  if (!dateObj || isNaN(dateObj.getTime())) return 'N/A';
   return new Intl.DateTimeFormat('gu-IN', {
-    hour: '2-digit',
+    hour: 'numeric',
     minute: '2-digit',
-    hour12: false, // Using 24-hour format which is common for this data
+    hour12: true,
   }).format(dateObj);
 };
+const getMoonPhaseGujarati = phase => {
+  if (phase === 0) return 'અમાસ';
+  if (phase > 0 && phase < 0.25) return 'શુક્લ પક્ષ';
+  if (phase === 0.25) return 'પ્રથમ ચતુર્થાંશ';
+  if (phase > 0.25 && phase < 0.5) return 'વેક્સિંગ ગિબ્બોસ';
+  if (phase === 0.5) return 'પૂનમ';
+  if (phase > 0.5 && phase < 0.75) return 'વેનિંગ ગિબ્બોસ';
+  if (phase === 0.75) return 'અંતિમ ચતુર્થાંશ';
+  return 'કૃષ્ણ પક્ષ';
+};
 
-// Component now accepts props for reusability
+// નવો ફેરફાર: દિવસના સમય મુજબ ગ્રેડિયન્ટ કલર્સ મેળવવા માટે ફંક્શન
+const getGradientColors = sunPercent => {
+  if (sunPercent < 10) return ['#4c669f', '#3b5998']; // Dawn
+  if (sunPercent < 40) return ['#74b9ff', '#0984e3']; // Morning
+  if (sunPercent < 60) return ['#00cec9', '#81ecec']; // Noon
+  if (sunPercent < 90) return ['#fdcb6e', '#fab1a0']; // Evening
+  return ['#e17055', '#d63031']; // Sunset
+};
+
 export default function SunTimesCard({ date = new Date() }) {
   const [times, setTimes] = useState(null);
+  const [sunAnim] = useState(new Animated.Value(0));
 
-  // Location for Ahmedabad, Gujarat
   const latitude = 23.0225;
   const longitude = 72.5714;
 
   useEffect(() => {
-    const calculateTimes = () => {
-      try {
-        // Get sun times
-        const sunTimes = SunCalc.getTimes(date, latitude, longitude);
-        
-        // Get moon times
-        const moonTimes = SunCalc.getMoonTimes(date, latitude, longitude);
+    const now = new Date();
+    const sunTimes = SunCalc.getTimes(date, latitude, longitude);
+    const moonTimes = SunCalc.getMoonTimes(date, latitude, longitude);
+    const moonIllumination = SunCalc.getMoonIllumination(date);
 
-        return [
-          {
-            icon: "weather-sunset-up",
-            label: "સૂર્યોદય",
-            time: formatTime(sunTimes.sunrise),
-            color: "#f39c12",
-          },
-          {
-            icon: "weather-sunset-down",
-            label: "સૂર્યાસ્ત",
-            time: formatTime(sunTimes.sunset),
-            color: "#e67e22",
-          },
-          {
-            icon: "moon-waxing-crescent",
-            label: "ચંદ્રોદય",
-            time: formatTime(moonTimes.rise),
-            color: "#3498db",
-          },
-          {
-            icon: "moon-waning-crescent",
-            label: "ચંદ્રાસ્ત",
-            time: formatTime(moonTimes.set),
-            color: "#8e44ad",
-          },
-        ];
-      } catch (error) {
-        console.error('Error calculating times:', error);
-        return null;
-      }
-    };
+    const daylightDuration = sunTimes.sunset.getTime() - sunTimes.sunrise.getTime();
+    const timeSinceSunrise = now.getTime() - sunTimes.sunrise.getTime();
+    let sunPercent = (timeSinceSunrise / daylightDuration) * 100;
 
-    const formattedTimes = calculateTimes();
-    if (formattedTimes) {
-      setTimes(formattedTimes);
-    }
-  }, [date]); // Recalculate if the date prop changes
+    if (now < sunTimes.sunrise) sunPercent = 0;
+    if (now > sunTimes.sunset) sunPercent = 100;
 
-  // Show a loading indicator while calculating
+    setTimes({
+      // નવો ફેરફાર: વધુ સમયની માહિતી ઉમેરો
+      sunrise: sunTimes.sunrise,
+      solarNoon: sunTimes.solarNoon,
+      sunset: sunTimes.sunset,
+      goldenHourStart: sunTimes.goldenHour,
+      goldenHourEnd: sunTimes.goldenHourEnd,
+      blueHourStart: sunTimes.blueHour,
+      blueHourEnd: sunTimes.blueHourEnd,
+      moonrise: moonTimes.rise,
+      moonset: moonTimes.set,
+      moonPhase: getMoonPhaseGujarati(moonIllumination.phase),
+      sunPercent,
+    });
+
+    Animated.timing(sunAnim, {
+      toValue: sunPercent,
+      duration: 1500,
+      useNativeDriver: false,
+    }).start();
+  }, [date]);
+
   if (!times) {
     return (
-      <View style={[styles.card, styles.loadingContainer]}>
-        <ActivityIndicator size="small" color="#e67e22" />
+      <LinearGradient
+        colors={['#fdfbfb', '#ebedee']}
+        style={[styles.card, styles.loadingContainer]}
+      >
+        <ActivityIndicator size="large" color="#e67e22" />
         <Text style={styles.loadingText}>સમયની ગણતરી ચાલુ છે...</Text>
-      </View>
+      </LinearGradient>
     );
   }
 
+  // નવો ફેરફાર: ડાયનેમિક ગ્રેડિયન્ટ
+  const gradientColors = getGradientColors(times.sunPercent);
+
+  // સૂર્યના આઇકનની સ્થિતિ માટે Interpolation
+  const sunX = sunAnim.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['50%', '95%'], // કિનારીઓથી થોડું અંદર
+  });
+
   return (
-    <View style={styles.card}>
-      {times.map((item, i) => (
-        <View key={i} style={styles.timeItem}>
-          <Icon name={item.icon} size={30} color={item.color} />
-          <Text style={styles.label}>{item.label}</Text>
-          <Text style={styles.timeText}>{item.time}</Text>
+    <LinearGradient colors={gradientColors} style={styles.card}>
+      {/* --- SUN PATH SECTION --- */}
+      <View style={styles.sunPathContainer}>
+        <View style={styles.sunPathTrack} />
+        <Animated.View style={[styles.sunIconWrapper, { left: sunX }]}>
+          <Icon name="white-balance-sunny" size={28} color="#FFD700" />
+        </Animated.View>
+        <View style={styles.sunTimeNode}>
+          <Text style={styles.sunTimeText}>{formatTime(times.sunrise)}</Text>
+          <Text style={styles.sunTimeLabel}>સૂર્યોદય</Text>
         </View>
-      ))}
-    </View>
+        <View style={[styles.sunTimeNode, { alignItems: 'center' }]}>
+          <Text style={styles.sunTimeText}>{formatTime(times.solarNoon)}</Text>
+          <Text style={styles.sunTimeLabel}>મધ્યાહન</Text>
+        </View>
+        <View style={[styles.sunTimeNode, { alignItems: 'flex-end' }]}>
+          <Text style={styles.sunTimeText}>{formatTime(times.sunset)}</Text>
+          <Text style={styles.sunTimeLabel}>સૂર્યાસ્ત</Text>
+        </View>
+      </View>
+
+      <View style={styles.divider} />
+
+      {/* --- MOON SECTION --- */}
+      <View style={styles.moonSection}>
+        <View style={styles.moonItem}>
+          <Icon name="moon-waxing-crescent" size={26} color="#E0E0E0" />
+          <Text style={styles.moonLabel}>ચંદ્રોદય</Text>
+          <Text style={styles.moonTime}>{formatTime(times.moonrise)}</Text>
+        </View>
+        <View style={styles.moonItem}>
+          <Icon name="theme-light-dark" size={26} color="#E0E0E0" />
+          <Text style={styles.moonLabel}>ચંદ્ર કળા</Text>
+          <Text style={styles.moonTime}>{times.moonPhase}</Text>
+        </View>
+        <View style={styles.moonItem}>
+          <Icon name="moon-waning-crescent" size={26} color="#E0E0E0" />
+          <Text style={styles.moonLabel}>ચંદ્રાસ્ત</Text>
+          <Text style={styles.moonTime}>{formatTime(times.moonset)}</Text>
+        </View>
+      </View>
+    </LinearGradient>
   );
 }
 
+// નવો ફેરફાર: સંપૂર્ણપણે નવી અને આધુનિક સ્ટાઈલ્સ
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: "#fff",
-    paddingVertical: 16,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    elevation: 3,
-    flexDirection: "row",
-    justifyContent: "space-around",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.22,
-    shadowRadius: 2.22,
-    marginVertical: 8,
+    borderRadius: 28,
+    padding: 22,
+    marginVertical: 14,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
   },
-  timeItem: {
-    alignItems: "center",
-    width: '24%', // Ensure items are spaced out evenly
+  sunPathContainer: {
+    height: 80,
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: 20,
+    position: 'relative',
   },
-  label: {
-    fontSize: 13,
-    color: '#333',
-    marginTop: 6,
-    fontWeight: '500',
+  sunPathTrack: {
+    position: 'absolute',
+    bottom: 50,
+    left: '10%',
+    right: '10%',
+    height: 2,
+    backgroundColor: 'rgba(255, 255, 255, 0.4)',
   },
-  timeText: {
-    fontSize: 14,
-    color: '#000',
+  sunIconWrapper: {
+    position: 'absolute',
+    bottom: 36,
+    transform: [{ translateX: -14 }], // Icon ને સેન્ટરમાં રાખવા માટે
+  },
+  sunTimeNode: {
+    flex: 1,
+  },
+  sunTimeText: {
+    fontSize: 15,
     fontWeight: 'bold',
+    color: '#FFFFFF',
+  },
+  sunTimeLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    marginVertical: 18,
+  },
+  moonSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  moonItem: {
+    alignItems: 'center',
+    width: '33%',
+  },
+  moonLabel: {
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginTop: 6,
+  },
+  moonTime: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
     marginTop: 2,
   },
   loadingContainer: {
+    height: 250,
     justifyContent: 'center',
     alignItems: 'center',
-    height: 100, // Give it some height while loading
   },
   loadingText: {
-    marginTop: 8,
-  }
+    marginTop: 12,
+    fontSize: 16,
+    color: '#444',
+  },
 });
